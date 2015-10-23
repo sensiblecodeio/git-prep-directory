@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/scraperwiki/hanoverd/builder/git"
+	"github.com/scraperwiki/git-prep-directory"
 
 	"github.com/codegangsta/cli"
 )
