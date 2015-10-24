@@ -20,7 +20,7 @@ func main() {
 	app.Usage = "Build tools friendly way of repeatedly cloning a git\n" +
 		"   repository using a submodule cache and setting file timestamps to commit times."
 
-	app.Action = ActionMain
+	app.Action = actionMain
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -41,7 +41,7 @@ func main() {
 	app.RunAndExitOnError()
 }
 
-func ActionMain(c *cli.Context) {
+func actionMain(c *cli.Context) {
 	if !c.GlobalIsSet("url") || !c.GlobalIsSet("ref") {
 		log.Fatalln("Error: --url and --ref required")
 	}
