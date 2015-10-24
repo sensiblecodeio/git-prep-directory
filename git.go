@@ -103,7 +103,7 @@ func LocalMirror(
 		return Fetch(ctx, gitDir, url, messages)
 	}
 
-	err = os.MkdirAll(filepath.Dir(gitDir), 0777)
+	err := os.MkdirAll(filepath.Dir(gitDir), 0777)
 	if err != nil {
 		return err
 	}
