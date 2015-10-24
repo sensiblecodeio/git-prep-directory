@@ -1,10 +1,6 @@
 package git
 
-// everything git and github related
-
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -19,8 +15,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-const GIT_BASE_DIR = "repo"
-
 // Command invokes a `command` in `workdir` with `args`, connecting Stdout and
 // Stderr to Stderr.
 func Command(workdir, command string, args ...string) *exec.Cmd {
@@ -32,54 +26,6 @@ func Command(workdir, command string, args ...string) *exec.Cmd {
 	cmd.Stderr = os.Stderr
 	return cmd
 }
-
-var (
-	ErrEmptyRepoName         = errors.New("Empty repository name")
-	ErrEmptyRepoOrganization = errors.New("Empty repository organization")
-	ErrUserNotAllowed        = errors.New("User not in the allowed set")
-)
-
-type Repository struct {
-	Name         string `json:"name"`
-	Url          string `json:"url"`
-	Organization string `json:"organization"`
-}
-
-type Pusher struct {
-	Name string `json:"name"`
-}
-
-type NonGithub struct {
-	NoBuild bool `json:"nobuild"`
-	Wait    bool `json:"wait"`
-}
-
-type JustNongithub struct {
-	NonGithub NonGithub `json:"nongithub"`
-}
-
-func ParseJustNongithub(in []byte) (j JustNongithub, err error) {
-	err = json.Unmarshal(in, &j)
-	return
-}
-
-type PushEvent struct {
-	Ref        string     `json:"ref"`
-	Deleted    bool       `json:"deleted"`
-	Repository Repository `json:"repository"`
-	After      string     `json:"after"`
-	Pusher     Pusher     `json:"pusher"`
-	NonGithub  NonGithub  `json:"nongithub"`
-	HtmlUrl    string     `json:"html_url"`
-}
-
-type GithubStatus struct {
-	State       string `json:"state"`
-	TargetUrl   string `json:"target_url"`
-	Description string `json:"description"`
-}
-
-var ErrSkipGithubEndpoint = errors.New("Github endpoint skipped")
 
 // LocalMirror creates or updates a mirror of `url` at `gitDir` using `git clone
 // --mirror`.
