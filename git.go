@@ -84,7 +84,7 @@ var ErrSkipGithubEndpoint = errors.New("Github endpoint skipped")
 func LocalMirror(
 	url, gitDir, ref string,
 	messages io.Writer,
-) (err error) {
+) error {
 
 	// When mirroring, allow up to two minutes before giving up.
 	const MirrorTimeout = 2 * time.Minute
