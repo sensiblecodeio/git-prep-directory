@@ -13,17 +13,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Command invokes a `command` in `workdir` with `args`, connecting Stdout and
-// Stderr to Stderr.
-func Command(workdir, command string, args ...string) *exec.Cmd {
-	// log.Printf("wd = %s cmd = %s, args = %q", workdir, command, append([]string{}, args...))
-	cmd := exec.Command(command, args...)
-	cmd.Dir = workdir
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	return cmd
-}
-
 // LocalMirror creates or updates a mirror of `url` at `gitDir` using `git clone
 // --mirror`.
 func LocalMirror(url, gitDir, ref string, messages io.Writer) error {
@@ -58,27 +47,6 @@ func Clone(ctx context.Context, url, gitDir string, messages io.Writer) error {
 	cmd.Stdout = messages
 	cmd.Stderr = messages
 	return ContextRun(ctx, cmd)
-}
-
-// ContextRun runs cmd within a net Context.
-// If the context is cancelled or times out, the process is killed.
-func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
-	errc := make(chan error)
-
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	go func() { errc <- cmd.Wait() }()
-
-	select {
-	case <-ctx.Done():
-		_ = cmd.Process.Kill()
-		return ctx.Err()
-	case err := <-errc:
-		return err // err may be nil
-	}
 }
 
 // Checkout switches branches or restores working tree files.
@@ -201,4 +169,36 @@ func RecursiveCheckout(gitDir, checkoutPath, rev string) error {
 		return fmt.Errorf("failed to prep submodules: %v", err)
 	}
 	return nil
+}
+
+// Command invokes a `command` in `workdir` with `args`, connecting Stdout and
+// Stderr to Stderr.
+func Command(workdir, command string, args ...string) *exec.Cmd {
+	// log.Printf("wd = %s cmd = %s, args = %q", workdir, command, append([]string{}, args...))
+	cmd := exec.Command(command, args...)
+	cmd.Dir = workdir
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	return cmd
+}
+
+// ContextRun runs cmd within a net Context.
+// If the context is cancelled or times out, the process is killed.
+func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
+	errc := make(chan error)
+
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	go func() { errc <- cmd.Wait() }()
+
+	select {
+	case <-ctx.Done():
+		_ = cmd.Process.Kill()
+		return ctx.Err()
+	case err := <-errc:
+		return err // err may be nil
+	}
 }
