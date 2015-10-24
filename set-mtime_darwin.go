@@ -15,12 +15,12 @@ func touchDatetime(t time.Time) string {
 func Chtimes(path string, atime, mtime time.Time) error {
 	cmd := exec.Command("touch", "-a", "-h", "-t", touchDatetime(atime), path)
 	if e := cmd.Run(); e != nil {
-		return &os.PathError{"futimesat", path, e}
+		return &os.PathError{Op: "futimesat", Path: path, Err: e}
 	}
 
 	cmd = exec.Command("touch", "-m", "-h", "-t", touchDatetime(mtime), path)
 	if e := cmd.Run(); e != nil {
-		return &os.PathError{"futimesat", path, e}
+		return &os.PathError{Op: "futimesat", Path: path, Err: e}
 	}
 
 	return nil

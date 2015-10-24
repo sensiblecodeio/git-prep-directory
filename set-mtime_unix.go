@@ -16,7 +16,7 @@ func Chtimes(path string, atime, mtime time.Time) error {
 	utimes[1] = unix.NsecToTimespec(mtime.UnixNano())
 
 	if e := unix.UtimesNanoAt(unix.AT_FDCWD, path, utimes[0:], unix.AT_SYMLINK_NOFOLLOW); e != nil {
-		return &os.PathError{"futimesat", path, e}
+		return &os.PathError{Op: "futimesat", Path: path, Err: e}
 	}
 	return nil
 }

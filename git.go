@@ -141,7 +141,6 @@ func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
 	case err := <-errc:
 		return err // err may be nil
 	}
-	return nil
 }
 
 func Fetch(
@@ -299,7 +298,7 @@ func PrepBuildDirectory(
 	cleanup := func() {
 		err := SafeCleanup(checkoutPath)
 		if err != nil {
-			log.Printf("Error cleaning up path: ", checkoutPath)
+			log.Println("Error cleaning up path:", checkoutPath)
 		}
 	}
 
