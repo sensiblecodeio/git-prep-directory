@@ -19,7 +19,6 @@ import (
 // Stderr to Stderr.
 func Command(workdir, command string, args ...string) *exec.Cmd {
 	// log.Printf("wd = %s cmd = %s, args = %q", workdir, command, append([]string{}, args...))
-
 	cmd := exec.Command(command, args...)
 	cmd.Dir = workdir
 	cmd.Stdout = os.Stderr
@@ -29,11 +28,7 @@ func Command(workdir, command string, args ...string) *exec.Cmd {
 
 // LocalMirror creates or updates a mirror of `url` at `gitDir` using `git clone
 // --mirror`.
-func LocalMirror(
-	url, gitDir, ref string,
-	messages io.Writer,
-) error {
-
+func LocalMirror(url, gitDir, ref string, messages io.Writer) error {
 	// When mirroring, allow up to two minutes before giving up.
 	const MirrorTimeout = 2 * time.Minute
 	ctx, done := context.WithTimeout(context.Background(), MirrorTimeout)
@@ -60,11 +55,7 @@ func LocalMirror(
 }
 
 // Clone clones a git repository as mirror.
-func Clone(
-	ctx context.Context,
-	url, gitDir string,
-	messages io.Writer,
-) error {
+func Clone(ctx context.Context, url, gitDir string, messages io.Writer) error {
 	cmd := Command(".", "git", "clone", "-q", "--mirror", url, gitDir)
 	cmd.Stdout = messages
 	cmd.Stderr = messages
@@ -93,17 +84,12 @@ func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
 }
 
 // Fetch fetches all branches from a given remote.
-func Fetch(
-	ctx context.Context,
-	gitDir, url string,
-	messages io.Writer,
-) (err error) {
-
+func Fetch(ctx context.Context, gitDir, url string, messages io.Writer) error {
 	cmd := Command(gitDir, "git", "fetch", "-f", url, "*:*")
 	cmd.Stdout = messages
 	cmd.Stderr = messages
 
-	err = ContextRun(ctx, cmd)
+	err := ContextRun(ctx, cmd)
 	if err != nil {
 		// git fetch where there is no update is exit status 1.
 		if err.Error() != "exit status 1" {
@@ -156,11 +142,11 @@ func RevParse(gitDir, ref string) (sha string, err error) {
 	var stdout []byte
 	stdout, err = cmd.Output()
 	if err != nil {
-		return
+		return "", err
 	}
 
 	sha = strings.TrimSpace(string(stdout))
-	return
+	return sha, nil
 }
 
 // Describe describes a commit given a reference using the most recent tag
@@ -172,17 +158,16 @@ func Describe(gitDir, ref string) (desc string, err error) {
 	var stdout []byte
 	stdout, err = cmd.Output()
 	if err != nil {
-		return
+		return "", err
 	}
 
 	desc = strings.TrimSpace(string(stdout))
 	desc = strings.TrimPrefix(desc, "heads/")
-	return
+	return desc, nil
 }
 
 // Checkout switches branches or restores working tree files.
 func Checkout(gitDir, checkoutDir, ref string) error {
-
 	err := os.MkdirAll(checkoutDir, 0777)
 	if err != nil {
 		return err
@@ -208,17 +193,15 @@ func Checkout(gitDir, checkoutDir, ref string) error {
 // BuildDirectory holds the git rev and path to a cloned git repository. It also
 // holds a cleanup function to safely remove this directory.
 type BuildDirectory struct {
-	Name, Dir string
-	Cleanup   func()
+	Name    string
+	Dir     string
+	Cleanup func()
 }
 
 // PrepBuildDirectory clones a given repository and checks out the given
 // revision, setting the timestamp of all files to their commit time and putting
 // all submodules into a submodule cache.
-func PrepBuildDirectory(
-	gitDir, remote, ref string,
-) (*BuildDirectory, error) {
-
+func PrepBuildDirectory(gitDir, remote, ref string) (*BuildDirectory, error) {
 	start := time.Now()
 	defer func() {
 		log.Printf("Took %v to prep %v", time.Since(start), remote)

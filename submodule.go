@@ -14,10 +14,7 @@ import (
 
 // PrepSubmodules in parallel initializes all submodules and additionally stores
 // them in a local cache.
-func PrepSubmodules(
-	gitDir, checkoutDir, mainRev string,
-) error {
-
+func PrepSubmodules(gitDir, checkoutDir, mainRev string) error {
 	gitModules := filepath.Join(checkoutDir, ".gitmodules")
 
 	submodules, err := ParseSubmodules(gitModules)
@@ -101,11 +98,7 @@ func MultipleErrors(errs <-chan error) error {
 }
 
 // Checkout the working directory of a given submodule.
-func prepSubmodule(
-	mainGitDir, mainCheckoutDir string,
-	submodule Submodule,
-) error {
-
+func prepSubmodule(mainGitDir, mainCheckoutDir string, submodule Submodule) error {
 	subGitDir := filepath.Join(mainGitDir, "modules", submodule.Path)
 
 	err := LocalMirror(submodule.URL, subGitDir, submodule.Rev, os.Stderr)
@@ -125,18 +118,20 @@ func prepSubmodule(
 
 // Submodule holds the path, url, and revision to a submodule.
 type Submodule struct {
-	Path, URL string
-	Rev       string // populated by GetSubmoduleRevs
+	Path string
+	URL  string
+	Rev  string // populated by GetSubmoduleRevs
 }
 
 // ParseSubmodules returns all submodule definitions given a .gitmodules
 // configuration.
-func ParseSubmodules(filename string) (submodules []Submodule, err error) {
+func ParseSubmodules(filename string) ([]Submodule, error) {
 	config, err := ini.LoadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
+	var submodules []Submodule
 	for section := range config {
 		if !strings.HasPrefix(section, "submodule") {
 			continue
