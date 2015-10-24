@@ -12,6 +12,8 @@ import (
 	ini "github.com/vaughan0/go-ini"
 )
 
+// PrepSubmodules in parallel initializes all submodules and additionally stores
+// them in a local cache.
 func PrepSubmodules(
 	gitDir, checkoutDir, mainRev string,
 ) error {
@@ -69,6 +71,7 @@ func PrepSubmodules(
 	return nil
 }
 
+// ErrMultiple holds a list of errors.
 type ErrMultiple struct {
 	errs []error
 }
@@ -81,7 +84,7 @@ func (em *ErrMultiple) Error() string {
 	return fmt.Sprint("multiple errors:\n", strings.Join(s, "\n"))
 }
 
-// Read errors out of a channel, counting only the non-nil ones.
+// MultipleErrors reads errors out of a channel, counting only the non-nil ones.
 // If there are zero non-nil errs, nil is returned.
 func MultipleErrors(errs <-chan error) error {
 	var em ErrMultiple
@@ -113,18 +116,21 @@ func prepSubmodule(
 	subCheckoutPath := filepath.Join(mainCheckoutDir, submodule.Path)
 
 	// Note: checkout may recurse onto prepSubmodules.
-	err = recursiveCheckout(subGitDir, subCheckoutPath, submodule.Rev)
+	err = RecursiveCheckout(subGitDir, subCheckoutPath, submodule.Rev)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
+// Submodule holds the path, url, and revision to a submodule.
 type Submodule struct {
 	Path, URL string
 	Rev       string // populated by GetSubmoduleRevs
 }
 
+// ParseSubmodules returns all submodule definitions given a .gitmodules
+// configuration.
 func ParseSubmodules(filename string) (submodules []Submodule, err error) {
 	config, err := ini.LoadFile(filename)
 	if err != nil {
@@ -143,6 +149,8 @@ func ParseSubmodules(filename string) (submodules []Submodule, err error) {
 	return submodules, nil
 }
 
+// GetSubmoduleRevs returns the revisions of all files in a given list of
+// submodules.
 func GetSubmoduleRevs(gitDir, mainRev string, submodules []Submodule) error {
 	for i := range submodules {
 		rev, err := GetSubmoduleRev(gitDir, submodules[i].Path, mainRev)
@@ -154,6 +162,7 @@ func GetSubmoduleRevs(gitDir, mainRev string, submodules []Submodule) error {
 	return nil
 }
 
+// GetSubmoduleRev returns the revisions of all files in a given submodule.
 func GetSubmoduleRev(gitDir, submodulePath, mainRev string) (string, error) {
 	cmd := Command(gitDir, "git", "ls-tree", mainRev, "--", submodulePath)
 	cmd.Stdout = nil

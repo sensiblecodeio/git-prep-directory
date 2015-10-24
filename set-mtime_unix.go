@@ -9,6 +9,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// Chtimes changes the modification and access time of a given file.
 func Chtimes(path string, atime, mtime time.Time) error {
 	// https://github.com/torvalds/linux/blob/2decb2682f80759f631c8332f9a2a34a02150a03/include/uapi/linux/fcntl.h#L56
 	var utimes [2]unix.Timespec

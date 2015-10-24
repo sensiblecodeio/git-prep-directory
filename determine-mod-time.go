@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// Return the most recent committed timestamp of each file in the whole of
-// history. It's faster than invoking 'git log -1' on each file.
+// CommitTimes returns the most recent committed timestamp of each file in the
+// whole of history. It's faster than invoking 'git log -1' on each file.
 func CommitTimes(gitDir, revision string) (map[string]time.Time, error) {
 	times := map[string]time.Time{}
 

@@ -21,7 +21,8 @@ import (
 
 const GIT_BASE_DIR = "repo"
 
-// Invoke a `command` in `workdir` with `args`, connecting Stdout and Stderr to Stderr.
+// Command invokes a `command` in `workdir` with `args`, connecting Stdout and
+// Stderr to Stderr.
 func Command(workdir, command string, args ...string) *exec.Cmd {
 	// log.Printf("wd = %s cmd = %s, args = %q", workdir, command, append([]string{}, args...))
 
@@ -80,7 +81,8 @@ type GithubStatus struct {
 
 var ErrSkipGithubEndpoint = errors.New("Github endpoint skipped")
 
-// Creates or updates a mirror of `url` at `gitDir` using `git clone --mirror`
+// LocalMirror creates or updates a mirror of `url` at `gitDir` using `git clone
+// --mirror`.
 func LocalMirror(
 	url, gitDir, ref string,
 	messages io.Writer,
@@ -111,6 +113,7 @@ func LocalMirror(
 	return Clone(ctx, url, gitDir, messages)
 }
 
+// Clone clones a git repository as mirror.
 func Clone(
 	ctx context.Context,
 	url, gitDir string,
@@ -122,7 +125,7 @@ func Clone(
 	return ContextRun(ctx, cmd)
 }
 
-// Run cmd within a net Context.
+// ContextRun runs cmd within a net Context.
 // If the context is cancelled or times out, the process is killed.
 func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
 	errc := make(chan error)
@@ -143,6 +146,7 @@ func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
 	}
 }
 
+// Fetch fetches all branches from a given remote.
 func Fetch(
 	ctx context.Context,
 	gitDir, url string,
@@ -164,9 +168,10 @@ func Fetch(
 	return nil
 }
 
+// ShaLike specifies a valid git hash.
 var ShaLike = regexp.MustCompile("[0-9a-zA-Z]{40}")
 
-// Returns true if ref is sha-like and is in the object database.
+// AlreadyHaveRef returns true if ref is sha-like and is in the object database.
 // The "sha-like" condition ensures that refs like `master` are always
 // freshened.
 func AlreadyHaveRef(gitDir, sha string) bool {
@@ -181,6 +186,7 @@ func AlreadyHaveRef(gitDir, sha string) bool {
 	return err == nil
 }
 
+// HaveFile checks if a git directory has files checked out.
 func HaveFile(gitDir, ref, path string) (ok bool, err error) {
 	cmd := Command(gitDir, "git", "show", fmt.Sprintf("%s:%s", ref, path))
 	cmd.Stdout = nil // don't want to see the contents
@@ -196,6 +202,7 @@ func HaveFile(gitDir, ref, path string) (ok bool, err error) {
 	return ok, err
 }
 
+// RevParse parses and formats the git rev of a given git reference.
 func RevParse(gitDir, ref string) (sha string, err error) {
 	cmd := Command(gitDir, "git", "rev-parse", ref)
 	cmd.Stdout = nil // for cmd.Output
@@ -210,6 +217,8 @@ func RevParse(gitDir, ref string) (sha string, err error) {
 	return
 }
 
+// Describe describes a commit given a reference using the most recent tag
+// reachable from it.
 func Describe(gitDir, ref string) (desc string, err error) {
 	cmd := Command(gitDir, "git", "describe", "--all", "--tags", "--long", ref)
 	cmd.Stdout = nil // for cmd.Output
@@ -225,6 +234,7 @@ func Describe(gitDir, ref string) (desc string, err error) {
 	return
 }
 
+// Checkout switches branches or restores working tree files.
 func Checkout(gitDir, checkoutDir, ref string) error {
 
 	err := os.MkdirAll(checkoutDir, 0777)
@@ -249,11 +259,16 @@ func Checkout(gitDir, checkoutDir, ref string) error {
 	return nil
 }
 
+// BuildDirectory holds the git rev and path to a cloned git repository. It also
+// holds a cleanup function to safely remove this directory.
 type BuildDirectory struct {
 	Name, Dir string
 	Cleanup   func()
 }
 
+// PrepBuildDirectory clones a given repository and checks out the given
+// revision, setting the timestamp of all files to their commit time and putting
+// all submodules into a submodule cache.
 func PrepBuildDirectory(
 	gitDir, remote, ref string,
 ) (*BuildDirectory, error) {
@@ -290,7 +305,7 @@ func PrepBuildDirectory(
 	shortRev := rev[:10]
 	checkoutPath := path.Join(gitDir, filepath.Join("c/", shortRev))
 
-	err = recursiveCheckout(gitDir, checkoutPath, rev)
+	err = RecursiveCheckout(gitDir, checkoutPath, rev)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +320,9 @@ func PrepBuildDirectory(
 	return &BuildDirectory{tagName, checkoutPath, cleanup}, nil
 }
 
-func recursiveCheckout(gitDir, checkoutPath, rev string) error {
+// RecursiveCheckout recursively checks out repositories; similar to "git clone
+// --recursive".
+func RecursiveCheckout(gitDir, checkoutPath, rev string) error {
 	err := Checkout(gitDir, checkoutPath, rev)
 	if err != nil {
 		return fmt.Errorf("failed to checkout: %v", err)
@@ -318,6 +335,8 @@ func recursiveCheckout(gitDir, checkoutPath, rev string) error {
 	return nil
 }
 
+// SafeCleanup recursively removes all files from a given path, which has to be
+// a subfolder of the current working directory.
 func SafeCleanup(path string) error {
 	if path == "/" || path == "" || path == "." || strings.Contains(path, "..") {
 		return fmt.Errorf("invalid path specified for deletion %q", path)

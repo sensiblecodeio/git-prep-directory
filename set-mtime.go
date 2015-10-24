@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// SetMTimes changes the modification and access time of all files in a given
+// directory to their latest commit time.
 func SetMTimes(gitDir, checkoutDir, ref string) error {
 
 	commitTimes, err := CommitTimes(gitDir, ref)
