@@ -9,6 +9,10 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+func init() {
+	log.SetPrefix("")
+}
+
 func main() {
 	app := cli.NewApp()
 
@@ -34,10 +38,8 @@ func main() {
 }
 
 func ActionMain(c *cli.Context) {
-
 	if !c.GlobalIsSet("url") || !c.GlobalIsSet("ref") {
-		log.Fatal("--url and --ref required")
-		return
+		log.Fatalln("Error: --url and --ref required")
 	}
 
 	where, err := git.PrepBuildDirectory(
@@ -48,5 +50,5 @@ func ActionMain(c *cli.Context) {
 		log.Fatalln("Error:", err)
 	}
 	log.Printf("Checked out %v at %v", where.Name, where.Dir)
-	fmt.Printf("%v", where.Dir)
+	fmt.Println(where.Dir)
 }
