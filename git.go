@@ -136,7 +136,7 @@ func ContextRun(ctx context.Context, cmd *exec.Cmd) error {
 
 	select {
 	case <-ctx.Done():
-		cmd.Process.Kill()
+		_ = cmd.Process.Kill()
 		return ctx.Err()
 	case err := <-errc:
 		return err // err may be nil
