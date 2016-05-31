@@ -15,10 +15,8 @@ import (
 
 // LocalMirror creates or updates a mirror of `url` at `gitDir` using `git clone
 // --mirror`.
-func LocalMirror(url, gitDir, ref string, messages io.Writer) error {
-	// When mirroring, allow up to two minutes before giving up.
-	const MirrorTimeout = 2 * time.Minute
-	ctx, done := context.WithTimeout(context.Background(), MirrorTimeout)
+func LocalMirror(url, gitDir, ref string, timeout time.Duration, messages io.Writer) error {
+	ctx, done := context.WithTimeout(context.Background(), timeout)
 	defer done()
 
 	if _, err := os.Stat(gitDir); err == nil {
@@ -26,7 +24,7 @@ func LocalMirror(url, gitDir, ref string, messages io.Writer) error {
 
 		if AlreadyHaveRef(gitDir, ref) {
 			// Sha already exists, don't need to fetch.
-			// log.Printf("Already have ref: %v %v", gitDir, ref)
+			// fmt.Fprintf(messages, "Already have ref: %v %v", gitDir, ref)
 			return nil
 		}
 
@@ -158,13 +156,13 @@ func Describe(gitDir, ref string) (desc string, err error) {
 
 // RecursiveCheckout recursively checks out repositories; similar to "git clone
 // --recursive".
-func RecursiveCheckout(gitDir, checkoutPath, rev string) error {
+func RecursiveCheckout(gitDir, checkoutPath, rev string, timeout time.Duration, messages io.Writer) error {
 	err := Checkout(gitDir, checkoutPath, rev)
 	if err != nil {
 		return fmt.Errorf("failed to checkout: %v", err)
 	}
 
-	err = PrepSubmodules(gitDir, checkoutPath, rev)
+	err = PrepSubmodules(gitDir, checkoutPath, rev, timeout, messages)
 	if err != nil {
 		return fmt.Errorf("failed to prep submodules: %v", err)
 	}

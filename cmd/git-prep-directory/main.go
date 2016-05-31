@@ -3,14 +3,21 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"time"
 
 	"github.com/scraperwiki/git-prep-directory"
 
 	"github.com/codegangsta/cli"
 )
 
+// CloneTimeout specifies the duration allowed for each individual `git clone`
+// call (main repository mirroring or git submodule initialization) before
+// cancelling the operation.
+const CloneTimeout = 1 * time.Hour
+
 func init() {
-	log.SetPrefix("")
+	log.SetFlags(0)
 }
 
 func main() {
@@ -36,6 +43,12 @@ func main() {
 			Usage: "destination dir",
 			Value: "./src",
 		},
+		cli.DurationFlag{
+			Name:   "timeout, t",
+			Usage:  "clone timeout",
+			Value:  CloneTimeout,
+			EnvVar: "GIT_PREP_DIR_TIMEOUT",
+		},
 	}
 
 	app.RunAndExitOnError()
@@ -49,7 +62,9 @@ func actionMain(c *cli.Context) {
 	where, err := git.PrepBuildDirectory(
 		c.GlobalString("destination"),
 		c.GlobalString("url"),
-		c.GlobalString("ref"))
+		c.GlobalString("ref"),
+		c.GlobalDuration("timeout"),
+		os.Stderr)
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}

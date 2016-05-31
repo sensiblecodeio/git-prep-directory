@@ -2,7 +2,7 @@ package git
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,10 +21,10 @@ type BuildDirectory struct {
 // PrepBuildDirectory clones a given repository and checks out the given
 // revision, setting the timestamp of all files to their commit time and putting
 // all submodules into a submodule cache.
-func PrepBuildDirectory(gitDir, remote, ref string) (*BuildDirectory, error) {
+func PrepBuildDirectory(gitDir, remote, ref string, timeout time.Duration, messages io.Writer) (*BuildDirectory, error) {
 	start := time.Now()
 	defer func() {
-		log.Printf("Took %v to prep %v", time.Since(start), remote)
+		fmt.Fprintf(messages, "Took %v to prep %v", time.Since(start), remote)
 	}()
 
 	if strings.HasPrefix(remote, "github.com/") {
@@ -36,7 +36,7 @@ func PrepBuildDirectory(gitDir, remote, ref string) (*BuildDirectory, error) {
 		return nil, fmt.Errorf("unable to determine abspath: %v", err)
 	}
 
-	err = LocalMirror(remote, gitDir, ref, os.Stderr)
+	err = LocalMirror(remote, gitDir, ref, timeout, messages)
 	if err != nil {
 		return nil, fmt.Errorf("unable to LocalMirror: %v", err)
 	}
@@ -54,7 +54,7 @@ func PrepBuildDirectory(gitDir, remote, ref string) (*BuildDirectory, error) {
 	shortRev := rev[:10]
 	checkoutPath := path.Join(gitDir, filepath.Join("c/", shortRev))
 
-	err = RecursiveCheckout(gitDir, checkoutPath, rev)
+	err = RecursiveCheckout(gitDir, checkoutPath, rev, timeout, messages)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func PrepBuildDirectory(gitDir, remote, ref string) (*BuildDirectory, error) {
 	cleanup := func() {
 		err := SafeCleanup(checkoutPath)
 		if err != nil {
-			log.Println("Error cleaning up path:", checkoutPath)
+			fmt.Fprintln(messages, "Error cleaning up path:", checkoutPath)
 		}
 	}
 
