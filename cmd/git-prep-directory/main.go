@@ -17,7 +17,7 @@ import (
 const CloneTimeout = 2 * time.Minute
 
 func init() {
-	log.SetPrefix("")
+	log.SetFlags(0)
 }
 
 func main() {

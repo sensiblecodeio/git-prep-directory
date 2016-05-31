@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -25,7 +24,7 @@ type BuildDirectory struct {
 func PrepBuildDirectory(gitDir, remote, ref string, timeout time.Duration, messages io.Writer) (*BuildDirectory, error) {
 	start := time.Now()
 	defer func() {
-		log.Printf("Took %v to prep %v", time.Since(start), remote)
+		fmt.Fprintf(messages, "Took %v to prep %v", time.Since(start), remote)
 	}()
 
 	if strings.HasPrefix(remote, "github.com/") {
@@ -63,7 +62,7 @@ func PrepBuildDirectory(gitDir, remote, ref string, timeout time.Duration, messa
 	cleanup := func() {
 		err := SafeCleanup(checkoutPath)
 		if err != nil {
-			log.Println("Error cleaning up path:", checkoutPath)
+			fmt.Fprintln(messages, "Error cleaning up path:", checkoutPath)
 		}
 	}
 

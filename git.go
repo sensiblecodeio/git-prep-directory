@@ -24,7 +24,7 @@ func LocalMirror(url, gitDir, ref string, timeout time.Duration, messages io.Wri
 
 		if AlreadyHaveRef(gitDir, ref) {
 			// Sha already exists, don't need to fetch.
-			// log.Printf("Already have ref: %v %v", gitDir, ref)
+			// fmt.Fprintf(messages, "Already have ref: %v %v", gitDir, ref)
 			return nil
 		}
 

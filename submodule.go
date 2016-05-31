@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,7 +27,7 @@ func PrepSubmodules(gitDir, checkoutDir, mainRev string, timeout time.Duration, 
 		return err
 	}
 
-	log.Printf("Prep %v submodules", len(submodules))
+	fmt.Fprintf(messages, "Prep %v submodules", len(submodules))
 
 	if err := GetSubmoduleRevs(gitDir, mainRev, submodules); err != nil {
 		return fmt.Errorf("GetSubmoduleRevs: %v", err)
