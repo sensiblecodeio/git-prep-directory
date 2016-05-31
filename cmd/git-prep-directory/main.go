@@ -14,7 +14,7 @@ import (
 // CloneTimeout specifies the duration allowed for each individual `git clone`
 // call (main repository mirroring or git submodule initialization) before
 // cancelling the operation.
-const CloneTimeout = 2 * time.Minute
+const CloneTimeout = 1 * time.Hour
 
 func init() {
 	log.SetFlags(0)
