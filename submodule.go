@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,7 +16,7 @@ import (
 
 // PrepSubmodules in parallel initializes all submodules and additionally stores
 // them in a local cache.
-func PrepSubmodules(gitDir, checkoutDir, mainRev string, timeout time.Duration) error {
+func PrepSubmodules(gitDir, checkoutDir, mainRev string, timeout time.Duration, messages io.Writer) error {
 	gitModules := filepath.Join(checkoutDir, ".gitmodules")
 
 	submodules, err := ParseSubmodules(gitModules)
@@ -52,7 +53,7 @@ func PrepSubmodules(gitDir, checkoutDir, mainRev string, timeout time.Duration) 
 				defer func() { <-semaphore }()
 				semaphore <- struct{}{}
 
-				err := prepSubmodule(gitDir, checkoutDir, submodule, timeout)
+				err := prepSubmodule(gitDir, checkoutDir, submodule, timeout, messages)
 				if err != nil {
 					err = fmt.Errorf("processing %v: %v", submodule.Path, err)
 				}
@@ -99,10 +100,10 @@ func MultipleErrors(errs <-chan error) error {
 }
 
 // Checkout the working directory of a given submodule.
-func prepSubmodule(mainGitDir, mainCheckoutDir string, submodule Submodule, timeout time.Duration) error {
+func prepSubmodule(mainGitDir, mainCheckoutDir string, submodule Submodule, timeout time.Duration, messages io.Writer) error {
 	subGitDir := filepath.Join(mainGitDir, "modules", submodule.Path)
 
-	err := LocalMirror(submodule.URL, subGitDir, submodule.Rev, timeout, os.Stderr)
+	err := LocalMirror(submodule.URL, subGitDir, submodule.Rev, timeout, messages)
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func prepSubmodule(mainGitDir, mainCheckoutDir string, submodule Submodule, time
 	subCheckoutPath := filepath.Join(mainCheckoutDir, submodule.Path)
 
 	// Note: checkout may recurse onto prepSubmodules.
-	err = RecursiveCheckout(subGitDir, subCheckoutPath, submodule.Rev, timeout)
+	err = RecursiveCheckout(subGitDir, subCheckoutPath, submodule.Rev, timeout, messages)
 	if err != nil {
 		return err
 	}

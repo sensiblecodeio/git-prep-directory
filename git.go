@@ -156,13 +156,13 @@ func Describe(gitDir, ref string) (desc string, err error) {
 
 // RecursiveCheckout recursively checks out repositories; similar to "git clone
 // --recursive".
-func RecursiveCheckout(gitDir, checkoutPath, rev string, timeout time.Duration) error {
+func RecursiveCheckout(gitDir, checkoutPath, rev string, timeout time.Duration, messages io.Writer) error {
 	err := Checkout(gitDir, checkoutPath, rev)
 	if err != nil {
 		return fmt.Errorf("failed to checkout: %v", err)
 	}
 
-	err = PrepSubmodules(gitDir, checkoutPath, rev, timeout)
+	err = PrepSubmodules(gitDir, checkoutPath, rev, timeout, messages)
 	if err != nil {
 		return fmt.Errorf("failed to prep submodules: %v", err)
 	}

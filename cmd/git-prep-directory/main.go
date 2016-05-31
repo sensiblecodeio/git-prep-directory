@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/scraperwiki/git-prep-directory"
@@ -62,7 +63,8 @@ func actionMain(c *cli.Context) {
 		c.GlobalString("destination"),
 		c.GlobalString("url"),
 		c.GlobalString("ref"),
-		c.GlobalDuration("timeout"))
+		c.GlobalDuration("timeout"),
+		os.Stderr)
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
