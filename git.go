@@ -151,6 +151,7 @@ func Describe(gitDir, ref string) (desc string, err error) {
 
 	desc = strings.TrimSpace(string(stdout))
 	desc = strings.TrimPrefix(desc, "heads/")
+	desc = strings.TrimPrefix(desc, "tags/")
 	return desc, nil
 }
 
