@@ -8,7 +8,7 @@ import (
 
 	"github.com/sensiblecodeio/git-prep-directory"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 // CloneTimeout specifies the duration allowed for each individual `git clone`
