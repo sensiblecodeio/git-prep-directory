@@ -48,7 +48,7 @@ This results in the following path hierarchy:
 
 ### Installation
 
-    $ go get github.com/scraperwiki/git-prep-directory/cmd/git-prep-directory
+    $ go get github.com/sensiblecodeio/git-prep-directory/cmd/git-prep-directory
 
 
 ### Usage

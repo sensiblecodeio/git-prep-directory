@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/scraperwiki/git-prep-directory"
+	"github.com/sensiblecodeio/git-prep-directory"
 
 	"github.com/codegangsta/cli"
 )
