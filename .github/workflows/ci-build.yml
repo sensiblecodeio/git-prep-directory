@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+    branches:
+      master
+  pull_request:
+
+jobs:
+  build:
+    name: Build and run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          make build
+
+      - name: Run
+        run: |
+          ./git-prep-directory --url https://github.com/sensiblecodeio/git-prep-directory -ref master
