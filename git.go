@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -9,8 +10,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // LocalMirror creates or updates a mirror of `url` at `gitDir` using `git clone
