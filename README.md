@@ -78,7 +78,7 @@ This results in the following path hierarchy:
 ## Go Library
 
 ```go
-import "github.com/scraperwiki/git-prep-directory"
+import "github.com/sensiblecodeio/git-prep-directory"
 
 buildDirectory, err := git.PrepBuildDirectory(<OUT_PATH>, <REPO_URL>, <GIT_REF>)
 ```
