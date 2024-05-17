@@ -23,7 +23,7 @@ func init() {
 func main() {
 	app := cli.NewApp()
 	app.Name = "git-prep-directory"
-	app.Version = "0.3.0"
+	app.Version = "0.4.0"
 	app.Usage = "Build tools friendly way of repeatedly cloning a git\n" +
 		"   repository using a submodule cache and setting file timestamps to commit times."
 
