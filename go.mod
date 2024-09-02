@@ -1,6 +1,6 @@
 module github.com/sensiblecodeio/git-prep-directory
 
-go 1.22.3
+go 1.23.0
 
 require (
 	github.com/urfave/cli v1.22.7
